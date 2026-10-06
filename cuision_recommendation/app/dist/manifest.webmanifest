@@ -1,0 +1,11 @@
+{
+  "name": "냉장고 미니홈피",
+  "short_name": "냉장고",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fffdf8",
+  "theme_color": "#72c8e8",
+  "icons": [
+    { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

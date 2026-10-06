@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#72c8e8">
+  <meta name="description" content="냉장고 사진 한 장으로 가장 빠르고 설거지가 적은 요리를 추천받아 보세요.">
+  <title>냉장고 미니홈피</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#app">본문으로 건너뛰기</a>
+  <div class="sky" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <main id="app" class="shell" aria-live="polite">
+    <header class="topbar">
+      <button class="brand" type="button" data-action="go-home" aria-label="처음 화면으로">
+        <span class="brand-mark">냉</span>
+        <span><strong>냉장고 미니홈피</strong><small>오늘 뭐 먹지?</small></span>
+      </button>
+      <button class="icon-button" type="button" data-action="open-settings" aria-label="내 설정 열기" title="내 설정">⚙</button>
+    </header>
+
+    <div class="visit-bar" aria-label="오늘의 상태">
+      <span>TODAY <b id="today-count">128</b></span>
+      <span class="status-dot"></span>
+      <span id="visit-message">퇴근 완료! 냉장고를 열어볼까요?</span>
+    </div>
+
+    <section id="screen" class="screen"></section>
+
+    <nav class="bottom-nav" aria-label="주요 메뉴">
+      <button class="nav-item is-active" type="button" data-nav="home"><span>⌂</span>홈</button>
+      <button class="nav-item" type="button" data-nav="fridge"><span>▦</span>냉장고</button>
+      <button class="nav-item" type="button" data-nav="likes"><span>♥</span>내 취향</button>
+    </nav>
+  </main>
+
+  <dialog id="settings-dialog" class="dialog">
+    <form method="dialog" id="settings-form">
+      <div class="dialog-head">
+        <div><p class="eyebrow">PROFILE</p><h2>내 식탁 설정</h2></div>
+        <button class="icon-button" value="cancel" aria-label="설정 닫기">×</button>
+      </div>
+      <label>알레르기<input name="allergies" placeholder="예: 달걀, 우유, 땅콩"></label>
+      <label>먹지 못하는 음식<input name="restricted" placeholder="예: 돼지고기"></label>
+      <label>싫어하는 재료<input name="dislikes" placeholder="예: 고수, 가지"></label>
+      <label>식단 제한<input name="diet" placeholder="예: 비건, 저탄수"></label>
+      <fieldset>
+        <legend>우리 집 조리도구</legend>
+        <div class="check-grid">
+          <label><input type="checkbox" name="tools" value="가스레인지"> 가스레인지</label>
+          <label><input type="checkbox" name="tools" value="전자레인지"> 전자레인지</label>
+          <label><input type="checkbox" name="tools" value="에어프라이어"> 에어프라이어</label>
+          <label><input type="checkbox" name="tools" value="오븐"> 오븐</label>
+          <label><input type="checkbox" name="tools" value="밥솥"> 밥솥</label>
+        </div>
+      </fieldset>
+      <p class="safety-note">알레르기 정보는 추천 제외에 사용하지만 의료적 안전을 보증하지 않습니다. 실제 제품 표시를 꼭 확인해 주세요.</p>
+      <button class="primary full" value="default" type="submit">저장하기</button>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
