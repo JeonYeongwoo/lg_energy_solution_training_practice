@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF 번역</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff8e9;--panel:#fffdf8;--ink:#3b3127;--muted:#786b5c;--line:#ecdcc1;--green:#65944a;--green-dark:#477734;--peach:#ffead0}
+@media(prefers-color-scheme:dark){:root{--bg:#202b20;--panel:#2a3629;--ink:#fff9ed;--muted:#d8cebd;--line:#546551;--green:#91bd70;--green-dark:#b2db91;--peach:#3a3024}}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#fff0be 0,transparent 28%),var(--bg);color:var(--ink);font-family:system-ui,sans-serif}
+main{display:grid;grid-template-columns:320px minmax(0,1fr);min-height:100vh}
+aside{padding:32px 24px;border-right:1px solid var(--line);background:linear-gradient(180deg,var(--panel),var(--peach))}
+.eyebrow{margin:0 0 6px;color:var(--green-dark);font-size:13px;font-weight:800;letter-spacing:.05em}h1{font-size:28px;margin:0 0 8px}p{color:var(--muted);line-height:1.6}label{display:block;margin:28px 0 10px;font-weight:700}
+.animal-row{display:flex;gap:5px;margin:16px 0 0;font-size:26px}.animal-row span{display:grid;place-items:center;width:39px;height:39px;border-radius:50%;background:var(--panel);box-shadow:0 3px 8px #0001}.animal-row span:nth-child(even){transform:translateY(5px)}
+input,select,button{font:inherit;max-width:100%}input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink)}
+button{padding:12px 18px;border:0;border-radius:12px;background:var(--green-dark);color:#fff;cursor:pointer;font-weight:800;box-shadow:0 4px 0 #0002;transition:transform .15s,filter .15s}button:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.06)}button:disabled{opacity:.45;cursor:not-allowed}
+#start{width:100%;margin-top:24px}progress{width:100%;height:14px;accent-color:var(--green-dark)}#status{min-height:50px;overflow-wrap:anywhere;background:var(--panel);padding:10px 12px;border-radius:12px;border:1px dashed var(--line)}
+.farm-art{display:block;width:100%;margin:20px 0 0;border-radius:18px;box-shadow:0 8px 20px #6f513020;border:3px solid #fff9ec}
+section{padding:32px;display:flex;flex-direction:column;gap:24px}header{display:flex;align-items:center;justify-content:space-between;gap:16px}h2{font-size:22px;margin:0}.heading-icon{display:inline-grid;place-items:center;width:36px;height:36px;margin-right:8px;border-radius:50%;background:var(--peach);font-size:21px}
+.preview{flex:1;min-height:240px;display:flex;flex-direction:column}.preview label{margin:0 0 12px;font-size:15px}.preview label::before{margin-right:7px}.original label::before{content:'🐮'}.translated label::before{content:'🐑'}
+textarea{width:100%;flex:1;min-height:240px;resize:vertical;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--ink);font:15px/1.75 system-ui,sans-serif;box-shadow:0 4px 14px #7c60350c}
+:focus-visible{outline:3px solid #4aa9ed;outline-offset:3px}@media(max-width:760px){main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}section{padding:24px}}
+</style>
+</head>
+<body><main>
+<aside><p class="eyebrow">🐾 FARM TRANSLATOR</p><h1>동물농장 PDF 번역</h1><p>문서의 텍스트를 추출하고<br>원하는 언어로 번역하세요.</p>
+<div class="animal-row" aria-label="농장 동물"><span>🐷</span><span>🐮</span><span>🐑</span><span>🐔</span><span>🦆</span></div>
+<img class="farm-art" src="{{ url_for('static', filename='animal-farm-translation.png') }}" alt="책과 문서를 함께 보는 말, 양, 소, 오리의 농장 일러스트">
+<form id="form">
+<label for="pdf">PDF 파일</label><input id="pdf" name="pdf" type="file" accept=".pdf,application/pdf" required>
+<label for="direction">번역 방향</label><select id="direction" name="direction"><option value="en-ko">영어 → 한국어</option><option value="ko-en">한국어 → 영어</option></select>
+<button id="start" type="submit">번역 시작</button></form>
+<label for="progress">번역 진행률 <span id="percent">0%</span></label><progress id="progress" max="100" value="0"></progress>
+<p id="status" role="status" aria-live="polite">PDF 파일을 선택해 주세요.</p>
+<p>최대 20MB · 300페이지<br>텍스트가 있는 PDF를 지원합니다.<br>번역 시 추출 텍스트가 OpenAI로 전송됩니다.</p></aside>
+<section><header><h2><span class="heading-icon">🐴</span>문서 미리보기</h2><button id="download" disabled>🐾 텍스트 다운로드</button></header>
+<div class="preview original"><label for="extracted">PDF에서 추출한 텍스트</label><textarea id="extracted" readonly placeholder="🐮 추출된 원문이 여기에 표시됩니다."></textarea></div>
+<div class="preview translated"><label for="translated">번역된 내용</label><textarea id="translated" readonly placeholder="🐑 번역이 완료된 청크부터 실시간으로 표시됩니다."></textarea></div>
+</section></main>
+<script>
+const $ = id => document.getElementById(id);
+let source = null, jobId = null;
+function busy(value){for(const id of ['start','pdf','direction']) $(id).disabled=value;}
+function progress(value){$('progress').value=value;$('percent').textContent=value+'%';}
+function fail(message){if(source) source.close();busy(false);$('status').textContent=message;}
+$('form').addEventListener('submit',async event=>{
+event.preventDefault();const data=new FormData($('form'));
+if($('pdf').files[0].size>20*1024*1024){fail('PDF는 20MB 이하로 업로드하세요.');return;}
+if(source) source.close();busy(true);$('download').disabled=true;jobId=null;progress(0);
+$('extracted').value='';$('translated').value='';$('status').textContent='PDF 업로드 및 텍스트 추출 중…';
+try{
+const response=await fetch('/translate',{method:'POST',body:data});const result=await response.json();
+if(!response.ok) throw new Error(result.error||'요청에 실패했습니다.');
+jobId=result.job_id;$('extracted').value=result.extracted;$('status').textContent='번역 중… 총 '+result.total+'개 청크';
+source=new EventSource('/events/'+jobId);
+source.addEventListener('translation',event=>{
+const data=JSON.parse(event.data),area=$('translated');const atBottom=area.scrollTop+area.clientHeight>=area.scrollHeight-30;
+area.value+=data.text;if(atBottom) area.scrollTop=area.scrollHeight;
+progress(data.progress);$('status').textContent=data.completed+' / '+data.total+'개 청크 번역 완료';});
+source.addEventListener('complete',()=>{source.close();busy(false);progress(100);$('download').disabled=false;$('status').textContent='번역 완료! 텍스트 파일을 다운로드하세요.';});
+source.addEventListener('failure',event=>fail(JSON.parse(event.data).message));
+source.onerror=()=>{$('status').textContent='연결이 끊겼습니다. 자동으로 재연결 중…';if(source.readyState===EventSource.CLOSED) fail('연결을 복구할 수 없습니다. 다시 시작하세요.');};
+}catch(error){fail(error.message);}
+});
+$('download').addEventListener('click',()=>{if(jobId) window.location.assign('/download/'+jobId);});
+</script></body></html>
