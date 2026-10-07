@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="가이드라인을 근거로 계약서를 문장별 검토하는 LLM 웹 서비스">
+  <title>Clause · AI 계약서 검토</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <div><strong>Clause</strong><span>AI 계약서 검토</span></div>
+      </div>
+
+      <section class="workflow" aria-label="검토 준비">
+        <p class="eyebrow">검토 준비</p>
+        <label class="upload-card" for="ragInput">
+          <span class="step">01</span>
+          <span><strong>RAG 파일 업로드</strong><small>가이드라인·약관 PDF, 여러 개 가능</small></span>
+          <span class="plus">＋</span>
+        </label>
+        <input id="ragInput" type="file" accept="application/pdf,.pdf" multiple hidden>
+
+        <label class="upload-card" for="contractInput">
+          <span class="step">02</span>
+          <span><strong>계약서 업로드</strong><small>검토할 PDF 한 개</small></span>
+          <span class="plus">＋</span>
+        </label>
+        <input id="contractInput" type="file" accept="application/pdf,.pdf" hidden>
+
+        <button id="reviewButton" class="review-button" type="button" hidden>
+          계약서 검토 시작
+        </button>
+      </section>
+
+      <div class="sidebar-status">
+        <div><span id="statusDot" class="status-dot"></span><span id="systemStatus">시스템 확인 중</span></div>
+        <small id="ragStatus">가이드라인 0개 청크</small>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <button id="menuButton" class="icon-button" aria-label="메뉴 열기">☰</button>
+        <div><h1>계약서 검토</h1><p>업로드한 기준에 따라 조항을 하나씩 확인합니다.</p></div>
+        <span class="model-badge">GPT-4o mini</span>
+      </header>
+
+      <section id="conversation" class="conversation" aria-live="polite">
+        <div id="welcome" class="welcome">
+          <div class="document-symbol" aria-hidden="true"><span>✓</span></div>
+          <h2>검토할 계약서를 준비해 주세요</h2>
+          <p>왼쪽에서 가이드라인과 계약서를 업로드하면<br>근거 문서를 비교해 수정이 필요한 조항만 표시합니다.</p>
+          <div class="flow-hint"><span>가이드라인 등록</span><i></i><span>계약서 업로드</span><i></i><span>문장별 검토</span></div>
+        </div>
+      </section>
+
+      <section id="progressPanel" class="progress-panel" hidden aria-live="polite">
+        <div class="progress-meta"><strong id="progressTitle">처리 중</strong><span id="progressLabel">0%</span></div>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <p id="progressDetail">파일을 준비하고 있습니다.</p>
+      </section>
+
+      <form id="chatForm" class="composer">
+        <textarea id="questionInput" rows="1" placeholder="계약 또는 다른 궁금한 내용을 질문하세요" aria-label="질문 입력"></textarea>
+        <button id="sendButton" type="submit" aria-label="질문 보내기">↑</button>
+        <p>일반 질문은 RAG를 사용하지 않고 AI가 직접 답변합니다.</p>
+      </form>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
